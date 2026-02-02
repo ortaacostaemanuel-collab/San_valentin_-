@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Una pregunta para ti...</title>
+    <style>
+        /* --- Estilos Generales --- */
+        body {
+            background-color: #ffe6eb; /* Fondo rosita suave */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Evita barras de desplazamiento cuando el botón se mueve */
+            text-align: center;
+        }
+
+        h1 {
+            color: #d62828;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* --- Contenedor de los GIFs --- */
+        #gif-container {
+            width: 300px;
+            height: 300px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #perro-gif {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- Botones --- */
+        .botones-container {
+            display: flex;
+            gap: 30px;
+            position: relative; /* Necesario para que el botón NO se mueva respecto a esto */
+            width: 300px; /* Ancho fijo para contener el movimiento inicial */
+            justify-content: center;
+            height: 60px; /* Altura fija para evitar saltos */
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #btn-si {
+            background-color: #2a9d8f;
+            color: white;
+        }
+
+        #btn-si:hover {
+            background-color: #21867a;
+            transform: scale(1.05);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+        }
+
+        #btn-no {
+            background-color: #e76f51;
+            color: white;
+            position: absolute; /* Clave para poder moverlo */
+            right: 0; /* Posición inicial a la derecha dentro del contenedor */
+            transition: all 0.3s ease; /* Movimiento suave */
+        }
+
+        /* --- Mensaje Final --- */
+        #mensaje-final {
+            display: none; /* Oculto al principio */
+            color: #d62828;
+            animation: aparecer 1s ease;
+        }
+
+        #mensaje-final h1 { font-size: 3rem; }
+        #mensaje-final p { font-size: 1.8rem; color: #333; }
+
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Corazones Flotantes (Opcional) --- */
+        .corazon {
+            position: fixed;
+            color: #ff4d6d;
+            font-size: 20px;
+            animation: flotar 4s linear infinite;
+            z-index: -1; /* Detrás de todo */
+        }
+        @keyframes flotar {
+            to { transform: translateY(-100vh) rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="pantalla-pregunta">
+        <h1>Amorcitoooo ¿Quisieras salir conmigo el 14 de febrero?</h1>
+        
+        <div id="gif-container">
+            <img id="perro-gif" src="https://media1.tenor.com/m/e7c02-052-0AAAAC/border-collie.gif" alt="Perrito esperando">
+        </div>
+
+        <div class="botones-container">
+            <button id="btn-si">¡SÍ!</button>
+            <button id="btn-no">NO</button>
+        </div>
+    </div>
+
+    <div id="mensaje-final">
+        <h1>¡SIII! ¡Sabía que dirías que sí! ❤️</h1>
+        <p>¡wujuuuuuuu |._.|!</p>
+        <div id="gif-container-final">
+        <img class="gif-celebracion" src="https://i.pinimg.com/originals/1a/32/3b/1a323b71f8371e870771019131673160.gif" alt="Perro celebrando">
+    </div>
+</div>
+
+
+    <script>
+        // --- Referencias a los elementos ---
+        const btnSi = document.getElementById('btn-si');
+        const btnNo = document.getElementById('btn-no');
+        const perroGif = document.getElementById('perro-gif');
+        const pantallaPregunta = document.getElementById('pantalla-pregunta');
+        const mensajeFinal = document.getElementById('mensaje-final');
+
+        // --- URLs de los GIFs (Enlaces directos de Tenor) ---
+        const gifNeutro = "https://media1.tenor.com/m/e7c02-052-0AAAAC/border-collie.gif";
+        // El enlace específico que me pasaste para el "NO":
+        const gifNoHover = "https://media1.tenor.com/m/J49_t7qcIDAAAAAC/border-collie-hug.gif"; 
+        // Un GIF feliz de los resultados de búsqueda para el "SÍ":
+        const gifSiClick = "https://media1.tenor.com/m/5mYt74X2cNoAAAAC/border-collie-happy.gif";
+
+        let acepto = false;
+
+        // --- Lógica del Botón NO ---
+        
+        // Cuando el ratón entra al botón NO
+        btnNo.addEventListener('mouseenter', () => {
+            if (acepto) return;
+
+            // 1. Cambiar el GIF al que me pasaste
+            perroGif.src = gifNoHover;
+
+            // 2. Mover el botón lejos
+            // Calculamos una posición aleatoria en la pantalla, pero asegurando que se mueva bastante
+            const x = (Math.random() - 0.5) * window.innerWidth * 0.6;
+            const y = (Math.random() - 0.5) * window.innerHeight * 0.6;
+            
+            // Aplicamos la transformación para moverlo
+            btnNo.style.transform = `translate(${x}px, ${y}px)`;
+        });
+
+        // Cuando el ratón sale del botón NO (opcional, para que vuelva a la calma si logra salir)
+        btnNo.addEventListener('mouseleave', () => {
+             if (!acepto) {
+                 // Vuelve al GIF neutral después de un pequeño retraso
+                 setTimeout(() => {
+                    if(!acepto) perroGif.src = gifNeutro;
+                 }, 500);
+             }
+        });
+
+
+        // --- Lógica del Botón SÍ ---
+        btnSi.addEventListener('click', () => {
+            acepto = true;
+            // 1. Cambiar al GIF feliz
+            perroGif.src = gifSiClick;
+
+            // 2. Lanzar confeti de corazones
+            crearLluviaCorazones();
+
+            // 3. Transición a la pantalla final después de un segundo
+            setTimeout(() => {
+                pantallaPregunta.style.display = 'none';
+                mensajeFinal.style.display = 'block';
+                // Movemos el GIF feliz al contenedor final
+                document.getElementById('gif-container-final').appendChild(perroGif.parentNode);
+            }, 1000);
+        });
+
+        // --- Función Extra: Lluvia de Corazones ---
+        function crearLluviaCorazones() {
+            for(let i = 0; i < 50; i++) {
+                const corazon = document.createElement('div');
+                corazon.classList.add('corazon');
+                corazon.innerHTML = '❤️';
+                corazon.style.left = Math.random() * 100 + 'vw';
+                corazon.style.top = (Math.random() * 20 + 100) + 'vh'; // Empiezan abajo
+                corazon.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                corazon.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                document.body.appendChild(corazon);
+                
+                // Eliminar corazones después de que terminen de flotar para no saturar
+                setTimeout(() => {
+                    corazon.remove();
+                }, 6000);
+            }
+        }
+    </script>
+</body>
+</html>
